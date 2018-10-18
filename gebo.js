@@ -11,37 +11,48 @@ class Gebo extends Tile {
     this.leftTile = null;
     this.rightTile = null;
 
-    this.coalOreInventory = 0;
+    this.depletedLeft = false;
 
+    this.searchingLeft = false;
+    this.searchingRight = false;
+
+    this.coalOreInventory = 0;
 
     this.velX = tileWidth;
     this.velY = tileHeight;
   }
   drawGebo() {
     super.drawTile();
+    if (this.leftTile != null) {
+    ctx.fillText(this.leftTile.x,this.x+3,this.y+40);
+    }
   }
   moveGebo(direction) {
     var dir = direction;
     switch(dir) {
       case 'left':
+      if (this.x > 0) {
       this.x -= this.velX;
       this.tileID -= GRID_ROWS;
-//      geboTileHandling()
+      }
       break;
       case 'up':
+      if (this.y > 0) {
       this.y -= this.velY;
       this.tileID -= 1;
-//      geboTileHandling()
+      }
       break;
       case 'right':
+      if (this.x < cvsW - tileWidth) {
       this.x += this.velX;
       this.tileID += GRID_ROWS;
-//      geboTileHandling()
+      }
       break;
       case 'down':
+      if (this.y < cvsH - tileHeight) {
       this.y += this.velY;
       this.tileID += 1;
-//      geboTileHandling()
+    }
       break;
     }
   }
@@ -56,9 +67,19 @@ class Gebo extends Tile {
     }
     searchForOre() {
       console.log('searchForOre');
-        if (this.leftTileOccupied == false && this.rightTileOccupied == false) {
-        this.moveGebo('left');
-      }
+        if (this.leftTileOccupied == false && this.rightTileOccupied == false && this.depletedLeft == false) {
+          if (this.x > 0) {
+          this.moveGebo('left');
+          console.log('moveGebo(left)');
+          return;
+          }
+          if (this.x == 0) {
+          this.depletedLeft = true;
+          this.moveGebo('right');
+          console.log('moveGebo(right)')
+        }
+        }
+
       else {
         console.log('nah');
         console.log('leftTileOccupied: ' + this.leftTileOccupied + ' ' +', rightTileOccupied: '+ this.rightTileOccupied);
@@ -111,6 +132,7 @@ function checkTiles() {
       var gebo = geboList[i];
       var tile = tileList[i];
       //left
+      if (gebo.x > 0) {
       var leftTileID = gebo.tileID - GRID_ROWS;
       var leftTile = tileList[leftTileID];
       gebo.leftTile = leftTile;
@@ -125,6 +147,8 @@ function checkTiles() {
       }
       console.log("leftTileID: " + leftTileID);
       console.log("leftTile.tileOccupant: " + leftTile.tileOccupant);
+    }
+    if (gebo.x < cvsW - tileWidth) {
       //Right
       var rightTileID = gebo.tileID + GRID_ROWS;
       var rightTile = tileList[rightTileID];
@@ -134,21 +158,23 @@ function checkTiles() {
         gebo.mineCoal(rightTileID);
         gebo.rightTileOccupied = true;
       }
+      if (gebo.rightTile.tileOccupant == null) {
+        gebo.rightTileOccupied = false;
+      }
       console.log("rightTileID: " + leftTileID);
       console.log("rightTile.tileOccupant: " + rightTile.tileOccupant);
+    }
   }
 }
 
 function geboDetermineState() {
   for (i=0;i<geboList.length;i++) {
     var gebo = geboList[i];
+    }
     if (gebo.coalOreInventory <= 100) {
       gebo.searchForOre();
     }
   }
-}
-
-
 
 function geboTurnHandling() {
   geboTileHandling();
